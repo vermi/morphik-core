@@ -245,7 +245,7 @@ class RetryingOTLPMetricExporter(MetricExporter):
                 # else:
                 # self.logger.error(
                 #     f"Failed to export to Honeycomb after {retries} attempts: {str(e)}"
-                # )
+                    # )
             except Exception:
                 # For non-connection errors, don't retry
                 # self.logger.error(f"Unexpected error exporting to Honeycomb: {str(e)}")
@@ -450,6 +450,9 @@ class TelemetryService:
         return cls._instance
 
     def _initialize(self):
+        # Initialize metadata extractors first, regardless of TELEMETRY_ENABLED
+        self._setup_metadata_extractors()
+        
         if not TELEMETRY_ENABLED:
             return
 
@@ -549,9 +552,6 @@ class TelemetryService:
             description="Duration of operations",
             unit="ms",
         )
-
-        # Initialize metadata extractors
-        self._setup_metadata_extractors()
 
     def _setup_metadata_extractors(self):
         """Set up all the metadata extractors with their field definitions."""
@@ -821,6 +821,10 @@ class TelemetryService:
         def decorator(func: Callable[..., T]) -> Callable[..., T]:
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
+                # If telemetry is disabled, just call the original function
+                if not TELEMETRY_ENABLED:
+                    return await func(*args, **kwargs)
+                
                 # Extract auth from kwargs
                 auth = kwargs.get("auth")
                 if not auth:
@@ -830,7 +834,7 @@ class TelemetryService:
                             auth = arg
                             break
 
-                # If we don't have auth, we can't track the operation
+                # If we don't have auth, just call the original function
                 if not auth:
                     return await func(*args, **kwargs)
 
@@ -877,6 +881,7 @@ class TelemetryService:
         The user_id is hashed to ensure anonymity.
         """
         if not TELEMETRY_ENABLED:
+            # Just yield None and return if telemetry is disabled
             yield None
             return
 
