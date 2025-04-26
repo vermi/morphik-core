@@ -46,7 +46,7 @@ services:
     networks:
       - morphik-network
     env_file:
-      - .env
+      - ../.env
 
   worker:
     build: .
@@ -76,7 +76,7 @@ services:
     networks:
       - morphik-network
     env_file:
-      - .env
+      - ../.env
 
   redis:
     image: redis:7-alpine

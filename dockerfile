@@ -49,7 +49,7 @@ COPY --from=builder /root/.local/bin /usr/local/bin
 COPY --from=builder /usr/local/share/nltk_data /usr/local/share/nltk_data
 
 # Create necessary directories
-RUN mkdir -p storage logs
+RUN mkdir -p storage/ingest_uploads logs
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
